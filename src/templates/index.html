@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArvyaX - Emotional State Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"],
+        textarea,
+        select,
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .result-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .intensity-bar {
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .intensity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .confidence-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .confidence-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .confidence-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .message-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .recommendation {
+            background: #667eea;
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .recommendation h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .recommendation p {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader.show {
+            display: block;
+        }
+
+        .uncertain-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .quick-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌿 ArvyaX</h1>
+            <p>Emotional State Prediction System</p>
+            <p style="font-size: 0.9em; opacity: 0.8;">From Understanding Humans → To Guiding Them</p>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px; color: #333;">Share Your Reflection</h2>
+
+            <div class="quick-options">
+                <button class="quick-btn" onclick="loadExample(1)">😰 Stressed Example</button>
+                <button class="quick-btn" onclick="loadExample(2)">😌 Calm Example</button>
+                <button class="quick-btn" onclick="loadExample(3)">🤔 Short Example</button>
+                <button class="quick-btn" onclick="loadExample(4)">😕 Mixed Example</button>
+            </div>
+
+            <form id="predictionForm">
+                <div class="form-group">
+                    <label for="journal_text">How are you feeling? What's on your mind? *</label>
+                    <textarea
+                        id="journal_text"
+                        name="journal_text"
+                        placeholder="Tell me about your session or how you're feeling right now..."
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="ambience_type">Ambience</label>
+                        <select id="ambience_type" name="ambience_type">
+                            <option value="forest">Forest</option>
+                            <option value="ocean">Ocean</option>
+                            <option value="rain">Rain</option>
+                            <option value="mountain">Mountain</option>
+                            <option value="cafe">Café</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration_min">Session Duration (min)</label>
+                        <input type="number" id="duration_min" name="duration_min" value="20" min="1" max="120">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="sleep_hours">Sleep Hours</label>
+                        <input type="number" id="sleep_hours" name="sleep_hours" value="7.0" min="0" max="24" step="0.5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="energy_level">Energy Level (1-5)</label>
+                        <input type="number" id="energy_level" name="energy_level" value="3" min="1" max="5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stress_level">Stress Level (1-5)</label>
+                        <input type="number" id="stress_level" name="stress_level" value="3" min="1" max="5">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="time_of_day">Time of Day</label>
+                        <select id="time_of_day" name="time_of_day">
+                            <option value="morning">Morning</option>
+                            <option value="afternoon">Afternoon</option>
+                            <option value="evening">Evening</option>
+                            <option value="night">Night</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="previous_day_mood">Yesterday's Mood</label>
+                        <select id="previous_day_mood" name="previous_day_mood">
+                            <option value="good">Good</option>
+                            <option value="neutral" selected>Neutral</option>
+                            <option value="stressed">Stressed</option>
+                            <option value="tired">Tired</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn">Get My Guidance</button>
+            </form>
+
+            <div class="loader" id="loader"></div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="card">
+                <h2 style="margin-bottom: 20px; color: #333;">🎯 Understanding You</h2>
+
+                <div class="result-item">
+                    <h3>Emotional State</h3>
+                    <div class="result-value" id="emotional_state">-</div>
+                </div>
+
+                <div class="result-item">
+                    <h3>Intensity</h3>
+                    <div class="intensity-bar">
+                        <div class="intensity-fill" id="intensity_fill">
+                            <span id="intensity_value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <h3>Confidence</h3>
+                    <div>
+                        <span class="result-value" id="confidence_value">-</span>
+                        <span class="confidence-badge" id="confidence_badge">-</span>
+                    </div>
+                    <div id="uncertain_warning"></div>
+                </div>
+            </div>
+
+            <div class="card recommendation">
+                <h3>💡 Your Personalized Guidance</h3>
+                <p><strong>What to do:</strong> <span id="what_to_do">-</span></p>
+                <p><strong>When:</strong> <span id="when_to_do">-</span></p>
+            </div>
+
+            <div class="card">
+                <div class="message-box" id="supportive_message">
+                    -
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const examples = {
+            1: {
+                journal_text: "I feel so overwhelmed right now, everything is too much and I can't focus",
+                energy_level: 1,
+                stress_level: 5,
+                sleep_hours: 5.0,
+                time_of_day: 'evening'
+            },
+            2: {
+                journal_text: "That forest session was so peaceful. I feel clear and ready to tackle my work.",
+                energy_level: 4,
+                stress_level: 1,
+                sleep_hours: 8.0,
+                time_of_day: 'morning'
+            },
+            3: {
+                journal_text: "ok",
+                energy_level: 3,
+                stress_level: 3,
+                sleep_hours: 6.5,
+                time_of_day: 'afternoon'
+            },
+            4: {
+                journal_text: "I don't know... some parts felt good but I'm still anxious about tomorrow",
+                energy_level: 3,
+                stress_level: 4,
+                sleep_hours: 6.0,
+                time_of_day: 'evening'
+            }
+        };
+
+        function loadExample(num) {
+            const ex = examples[num];
+            document.getElementById('journal_text').value = ex.journal_text;
+            document.getElementById('energy_level').value = ex.energy_level;
+            document.getElementById('stress_level').value = ex.stress_level;
+            document.getElementById('sleep_hours').value = ex.sleep_hours;
+            document.getElementById('time_of_day').value = ex.time_of_day;
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get form data
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // Show loader
+            document.getElementById('loader').classList.add('show');
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('results').classList.remove('show');
+
+            try {
+                // Make API call
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error making prediction: ' + error.message);
+            } finally {
+                document.getElementById('loader').classList.remove('show');
+                document.getElementById('submitBtn').disabled = false;
+            }
+        });
+
+        function displayResults(result) {
+            const pred = result.prediction;
+            const rec = result.recommendation;
+
+            // Emotional state
+            document.getElementById('emotional_state').textContent =
+                pred.emotional_state.toUpperCase();
+
+            // Intensity
+            const intensityPercent = (pred.intensity / 5) * 100;
+            document.getElementById('intensity_fill').style.width = intensityPercent + '%';
+            document.getElementById('intensity_value').textContent = pred.intensity + '/5';
+
+            // Confidence
+            const confidencePercent = (pred.confidence * 100).toFixed(0) + '%';
+            document.getElementById('confidence_value').textContent = confidencePercent;
+
+            const badge = document.getElementById('confidence_badge');
+            badge.classList.remove('confidence-high', 'confidence-medium', 'confidence-low');
+
+            if (pred.confidence >= 0.7) {
+                badge.textContent = 'High';
+                badge.classList.add('confidence-high');
+            } else if (pred.confidence >= 0.5) {
+                badge.textContent = 'Medium';
+                badge.classList.add('confidence-medium');
+            } else {
+                badge.textContent = 'Low';
+                badge.classList.add('confidence-low');
+            }
+
+            // Uncertain warning
+            const warningDiv = document.getElementById('uncertain_warning');
+            if (pred.uncertain_flag === 1) {
+                warningDiv.innerHTML = `
+                    <div class="uncertain-warning">
+                        ⚠️ <strong>Uncertainty Flag:</strong> The system is not entirely certain about this prediction.
+                        This often happens with short or ambiguous inputs.
+                    </div>
+                `;
+            } else {
+                warningDiv.innerHTML = '';
+            }
+
+            // Recommendation
+            document.getElementById('what_to_do').textContent =
+                rec.what_to_do.replace(/_/g, ' ').toUpperCase();
+            document.getElementById('when_to_do').textContent =
+                rec.when_to_do.replace(/_/g, ' ').toUpperCase();
+
+            // Supportive message
+            document.getElementById('supportive_message').textContent = result.message;
+
+            // Show results
+            document.getElementById('results').classList.add('show');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
