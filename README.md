@@ -276,26 +276,6 @@ Most important metadata features:
 
 **See [docs/ERROR_ANALYSIS.md](docs/ERROR_ANALYSIS.md) for detailed analysis of 10+ failure cases.**
 
-## Improvement Recommendations
-
-### Immediate Actions
-1. Add minimum text length requirement
-2. Implement calibrated uncertainty estimation
-3. Add text-metadata interaction features
-4. Use ordinal regression for intensity
-
-### Data Collection
-1. Collect more short-but-meaningful examples
-2. Add confidence ratings to labels
-3. Gather more examples of rare states
-4. Label conflicting-signal cases explicitly
-
-### Model Improvements
-1. Ensemble methods for robustness
-2. Multi-task learning (joint state + intensity)
-3. Attention mechanisms for dynamic weighting
-4. Label smoothing for noisy labels
-
 ## Edge Deployment
 
 The system is designed for on-device deployment. See [docs/EDGE_PLAN.md](docs/EDGE_PLAN.md) for:
@@ -306,16 +286,3 @@ The system is designed for on-device deployment. See [docs/EDGE_PLAN.md](docs/ED
 - On-device vs cloud tradeoffs
 
 **Current Model Size**: ~5MB (lightweight enough for mobile)
-
-## Team
-
-**ArvyaX · RevoltronX**
-Building AI systems that truly understand and guide humans.
-
-## License
-
-This project is part of an internship assignment for ArvyaX.
-
----
-
-**Note**: This system prioritizes real-world robustness over perfect accuracy. It knows when it's uncertain and makes safe, helpful decisions even with noisy, incomplete data.
